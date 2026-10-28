@@ -1,0 +1,582 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Anvaya | Attendance Management</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: an ERP-style app modelled on a college ERP portal. Sign-in is one centred card. The app is a brand-coloured top bar, a light side menu and a content column. Change --top / --brand to retheme. */
+:root{
+  --paper:#F0F3F8; --panel:#FFFFFF; --soft:#E9EEF6; --line:#D9E0EB;
+  --ink:#1A2332; --muted:#5C6A80;
+  --top:#1F4E9E; --top-ink:#FFFFFF; --brand:#1F4E9E; --brand-tint:#E6EEFB;
+  --accent:#1F4E9E; --accent-ink:#FFFFFF;
+  --cs:#2754D6; --p2p:#B9620F; --hy:#0B7F69; --good:#1B7F4B; --bad:#B3261E;
+  --f-display:'Inter','Segoe UI',system-ui,sans-serif;
+  --f-body:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0C121B; --panel:#131C29; --soft:#1A2536; --line:#263447;
+    --ink:#E7EDF6; --muted:#94A3B8;
+    --top:#14264A; --brand:#7FA6FF; --brand-tint:#1B2A47; --accent:#7FA6FF; --accent-ink:#0A1220;
+    --cs:#8AA8FF; --p2p:#F0A35A; --hy:#4CCBAE; --good:#5BD08F; --bad:#FF8A80;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0C121B; --panel:#131C29; --soft:#1A2536; --line:#263447;
+  --ink:#E7EDF6; --muted:#94A3B8;
+  --top:#14264A; --brand:#7FA6FF; --brand-tint:#1B2A47; --accent:#7FA6FF; --accent-ink:#0A1220;
+  --cs:#8AA8FF; --p2p:#F0A35A; --hy:#4CCBAE; --good:#5BD08F; --bad:#FF8A80;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{
+  background:var(--paper);color:var(--ink);font:400 1rem/1.55 var(--f-body);
+  padding-block:1rem 2.5rem;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--paper)}
+h1,h2,h3{font-family:var(--f-display);line-height:1.1;margin:0;text-wrap:balance}
+p{margin:0}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.label{font:500 .7rem/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.mono{font-family:var(--f-mono)}
+.ic{width:1.15rem;height:1.15rem;flex:none}
+.good{color:var(--good)}.badc{color:var(--bad)}
+.fine{font-size:.8rem;color:var(--muted)}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;font:500 .85rem/1 var(--f-mono);background:var(--accent);color:var(--accent-ink);border:1px solid var(--accent);padding:.85rem 1.15rem;cursor:pointer;border-radius:6px}
+.btn:hover:not(:disabled){filter:brightness(1.06)}
+.btn:disabled{opacity:.5;cursor:progress}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn.ghost:hover:not(:disabled){border-color:var(--ink);filter:none}
+.btn.sm{padding:.6rem .8rem;font-size:.78rem}
+.actions{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}
+
+/* sign-in */
+.lg{min-height:calc(100vh - 3.5rem);min-height:calc(100dvh - 3.5rem);display:grid;place-items:center;padding-block:1rem}
+.lcard{width:min(100%,440px);background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:0 12px 32px rgba(20,40,80,.10);overflow:hidden}
+.lcard::before{content:"";display:block;height:6px;background:var(--top)}
+.lbody{padding:clamp(1.4rem,5vw,2.2rem);display:grid;gap:1.4rem}
+.lhead{display:grid;justify-items:center;gap:.45rem;text-align:center}
+.limg{height:4.2rem;width:auto;max-width:12rem;object-fit:contain}
+.mark{width:3rem;height:3rem;border-radius:10px;background:var(--top);color:#fff;display:grid;place-items:center;font:800 1.05rem var(--f-display);flex:none}
+.mark.big{width:4.2rem;height:4.2rem;font-size:1.4rem}
+.lhead h1{font-size:2rem;font-weight:800;letter-spacing:-.01em;color:var(--brand)}
+.lhead p{color:var(--muted);font-size:.9rem}
+.roles{display:grid;gap:.6rem}
+.role{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:.15rem .85rem;align-items:center;text-align:left;background:var(--paper);border:1px solid var(--line);padding:.8rem .9rem;cursor:pointer;border-radius:10px}
+.role:hover{border-color:var(--brand)}
+.role .ri{grid-row:1/3;width:2.4rem;height:2.4rem;border-radius:8px;background:var(--soft);display:grid;place-items:center;color:var(--ink)}
+.role b{font-weight:600}
+.role small{grid-column:2;color:var(--muted);font-size:.8rem;line-height:1.35}
+.role .id{grid-column:3;grid-row:1/3;font:500 .72rem var(--f-mono);color:var(--muted)}
+.role[aria-pressed="true"]{border-color:var(--brand);background:var(--brand-tint);box-shadow:0 0 0 1px var(--brand)}
+.role[aria-pressed="true"] .ri{background:var(--brand);color:var(--accent-ink)}
+.btn.block{width:100%}
+.fgrid{display:grid;gap:1rem}
+.fld{display:grid;gap:.35rem}
+.fld label{font-size:.8rem;color:var(--muted);font-weight:500}
+.fld input{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:.78rem .9rem;width:100%;color:var(--ink)}
+.fld input:focus{border-color:var(--brand);outline:2px solid var(--brand);outline-offset:0}
+.lnk{background:none;border:0;color:var(--brand);cursor:pointer;font-size:.85rem;text-decoration:underline;justify-self:center;padding:0}
+.card form.fgrid{max-width:380px}
+.lfoot{text-align:center;font-size:.78rem;color:var(--muted);display:grid;gap:.25rem}
+
+/* shell */
+.app{max-width:1320px;margin-inline:auto;display:grid;gap:1.25rem}
+.top{display:flex;align-items:center;gap:1rem;background:var(--top);color:var(--top-ink);border-radius:12px;padding:.7rem 1rem}
+.brand{display:flex;align-items:center;gap:.75rem;min-width:0;flex:1}
+.brand>div{min-width:0}
+.brand strong{display:block;font:700 1.05rem/1.15 var(--f-display)}
+.brand small{display:block;font-size:.72rem;opacity:.8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip{background:#fff;border-radius:8px;height:2.6rem;min-width:2.6rem;padding:.25rem .4rem;display:grid;place-items:center;flex:none}
+.chip img{height:2.05rem;width:auto;max-width:5rem;object-fit:contain;display:block}
+.chip .mark{width:2.1rem;height:2.1rem;font-size:.85rem;background:#1F4E9E}
+.me{display:flex;align-items:center;gap:.7rem;min-width:0}
+.who{text-align:right;min-width:0}
+.who b{display:block;font-weight:600;font-size:.88rem;white-space:nowrap}
+.who small{display:block;font-size:.72rem;opacity:.8;white-space:nowrap}
+@media (max-width:600px){.who{display:none}}
+.out{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.3);color:inherit;border-radius:8px;padding:.5rem;cursor:pointer;display:grid;place-items:center}
+.out:hover{background:rgba(255,255,255,.24)}
+.av{width:2.2rem;height:2.2rem;border-radius:50%;background:#fff;color:#1F4E9E;display:grid;place-items:center;font:600 .78rem var(--f-mono);flex:none}
+.av.s{width:1.9rem;height:1.9rem;background:var(--soft);color:var(--ink);font-size:.7rem}
+.shell{display:grid;grid-template-columns:230px minmax(0,1fr);gap:1.25rem;align-items:start}
+@media (max-width:880px){.shell{grid-template-columns:minmax(0,1fr)}}
+.side{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:.6rem;position:sticky;top:calc(env(safe-area-inset-top,0px) + 1rem);min-width:0}
+@media (max-width:880px){.side{position:static}}
+.nav{display:grid;gap:.2rem}
+@media (max-width:880px){.nav{display:flex;overflow-x:auto;scrollbar-width:none}}
+.nv{display:flex;align-items:center;gap:.7rem;background:none;border:0;color:var(--ink);padding:.7rem .8rem;border-radius:8px;cursor:pointer;text-align:left;font-size:.92rem;white-space:nowrap}
+.nv:hover{background:var(--soft)}
+.nv[aria-current="page"]{background:var(--brand-tint);color:var(--brand);font-weight:600;box-shadow:inset 3px 0 0 var(--brand)}
+.main{display:grid;gap:1.25rem;min-width:0}
+.ph{display:flex;align-items:end;justify-content:space-between;gap:1rem;flex-wrap:wrap;padding:.25rem .1rem}
+.ph h1{font-size:clamp(1.6rem,3.4vw,2.2rem);font-weight:800;letter-spacing:-.015em}
+.ph p{color:var(--muted);font-size:.92rem;margin-top:.4rem}
+.sel{display:grid;gap:.3rem}
+.sel label{font-size:.76rem;color:var(--muted)}
+.sel select{background:var(--panel);border:1px solid var(--line);padding:.6rem .75rem;border-radius:6px;min-width:12rem;max-width:100%}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;min-width:0}
+.cpad{padding:1.1rem 1.2rem}
+.chead{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1rem 1.2rem;border-bottom:1px solid var(--line)}
+.chead h3{font:600 1rem/1.2 var(--f-body)}
+.grid2{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:1.25rem}
+@media (max-width:1000px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:1rem}
+.stat{display:flex;gap:.9rem;align-items:center;padding:1rem 1.1rem;min-width:0}
+.stat .si{width:2.6rem;height:2.6rem;border-radius:10px;background:var(--soft);display:grid;place-items:center;flex:none}
+.stat b{display:block;font:800 1.6rem/1 var(--f-display);font-variant-numeric:tabular-nums}
+.stat span{font-size:.78rem;color:var(--muted)}
+.hi{display:grid;grid-template-columns:auto minmax(0,1fr);gap:1.5rem;align-items:center;padding:1.25rem 1.4rem}
+@media (max-width:520px){.hi{grid-template-columns:minmax(0,1fr);justify-items:start}}
+.ring{width:7.5rem;height:7.5rem}
+.ring circle{fill:none;stroke-width:9}
+.ring .rt{stroke:var(--soft)}
+.ring .rv{stroke-linecap:round}
+.ring text{font:800 22px var(--f-display);fill:var(--ink)}
+.hi h2{font-size:1.5rem;font-weight:800}
+.hi p{color:var(--muted);font-size:.92rem;margin-top:.4rem;max-width:46ch}
+.tt{list-style:none;margin:0;padding:0}
+.tt li{display:grid;grid-template-columns:4.2rem minmax(0,1fr) auto;gap:.75rem;align-items:center;padding:.8rem 1.2rem;border-bottom:1px solid var(--line)}
+.tt li:last-child{border-bottom:0}
+.tt time{font:500 .8rem var(--f-mono);color:var(--muted)}
+.tt b{font-weight:600;font-size:.92rem;display:block}
+.tt small{color:var(--muted);font-size:.78rem}
+.pill{font:500 .66rem/1 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;padding:.4rem .55rem;border-radius:99px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.pill.on{border-color:var(--good);color:var(--good)}
+.pill.bad{border-color:var(--bad);color:var(--bad)}
+.nt{list-style:none;margin:0;padding:0}
+.nt li{padding:.85rem 1.2rem;border-bottom:1px solid var(--line);display:grid;gap:.2rem;font-size:.9rem}
+.nt li:last-child{border-bottom:0}
+.nt small{font:500 .7rem var(--f-mono);color:var(--brand);letter-spacing:.06em;text-transform:uppercase}
+
+/* course rows */
+.crow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.7rem 1rem;padding:1rem 1.2rem;border-bottom:1px solid var(--line);align-items:center}
+.crow:last-child{border-bottom:0}
+.crow .nm{font-weight:600}
+.crow .nm small{display:block;color:var(--muted);font-weight:400;font-size:.8rem}
+.cells{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:4px}
+.cell{width:22px;height:22px;border:1px solid var(--line);background:var(--paper);padding:0;border-radius:5px;cursor:pointer}
+.cell.p{background:var(--good);border-color:var(--good)}
+.cell.bad{outline:2px solid var(--bad);outline-offset:1px}
+.cell.on{box-shadow:0 0 0 2px var(--panel),0 0 0 4px var(--accent)}
+.pc{display:flex;align-items:center;gap:.6rem;font-variant-numeric:tabular-nums}
+.pc b{font:800 1.3rem/1 var(--f-display)}
+.badge{font:500 .66rem/1 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;padding:.4rem .55rem;border:1px solid currentColor;border-radius:99px}
+.detail{border:1px solid var(--accent);background:var(--panel);border-radius:12px;padding:1rem 1.2rem;display:grid;gap:.4rem;font-size:.9rem}
+.detail .mono{font-size:.78rem;overflow-wrap:anywhere;color:var(--muted)}
+.key{display:flex;gap:1.1rem;flex-wrap:wrap;font-size:.8rem;color:var(--muted);align-items:center}
+.key i{display:inline-block;width:.8rem;height:.8rem;border-radius:3px;border:1px solid var(--line);background:var(--paper);vertical-align:-.1em;margin-right:.35rem}
+.key i.p{background:var(--good);border-color:var(--good)}
+.key i.b{border:2px solid var(--bad)}
+
+/* teacher */
+.roster{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr))}
+.roster label{display:flex;align-items:center;gap:.7rem;padding:.7rem 1.1rem;border-bottom:1px solid var(--line);border-right:1px solid var(--line);cursor:pointer;min-width:0}
+.roster label:hover{background:var(--paper)}
+.roster label span.n{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.roster input{width:1.15rem;height:1.15rem;accent-color:var(--good);flex:none}
+.roster small{margin-left:auto;font:400 .72rem var(--f-mono);color:var(--muted)}
+.bar{height:8px;background:var(--soft);border-radius:99px;min-width:90px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:99px}
+.note{padding:.85rem 1.1rem;border:1px solid var(--line);background:var(--soft);border-radius:8px;font-size:.9rem}
+.note.ok{border-color:var(--good)}
+.note.err{border-color:var(--bad)}
+
+/* admin */
+.models{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:1rem}
+.mc{background:var(--panel);border:1px solid var(--line);padding:1.1rem;display:grid;gap:.75rem;align-content:start;text-align:left;cursor:pointer;border-radius:12px;min-width:0}
+.mc h3{font:600 1.05rem/1.2 var(--f-body);display:flex;align-items:center;gap:.5rem}
+.dot{width:.75rem;height:.75rem;border-radius:50%;display:inline-block;flex:none}
+.mc dl{margin:0;display:grid;gap:.3rem;font-size:.85rem}
+.mc dl div{display:flex;justify-content:space-between;gap:.5rem}
+.mc dt{color:var(--muted)}.mc dd{margin:0;font-family:var(--f-mono);text-align:right}
+.mc[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:.88rem}
+th,td{padding:.7rem .95rem;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+th{font:500 .68rem/1.2 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:var(--soft)}
+td.h{font-family:var(--f-mono);font-size:.8rem;color:var(--muted)}
+tr.badrow td{background:color-mix(in srgb,var(--bad) 12%,transparent)}
+.spin{display:inline-block;width:.9em;height:.9em;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation-duration:2.4s}}
+</style>
+
+<div id="app"></div>
+
+<script>
+(function(){
+  /* ---------- data ---------- */
+  var INST='Attendance Management';
+  var K='anvaya.v1.',DEFAULT_PW='anvaya@123';
+  function logo(c){return '<span class="mark'+(c==='limg'?' big':'')+'">A</span>'}
+  var COURSES=[
+    {id:'DS',name:'Distributed Systems',code:'CS401',room:'Room 204'},
+    {id:'DB',name:'Database Systems',code:'CS402',room:'Room 118'},
+    {id:'CN',name:'Computer Networks',code:'CS403',room:'Lab 3'},
+    {id:'ML',name:'Machine Learning',code:'CS404',room:'Room 301'},
+    {id:'SE',name:'Software Engineering',code:'CS405',room:'Room 120'},
+    {id:'BC',name:'Blockchain Technology',code:'CS406',room:'Room 214'}
+  ];
+  var STUDENTS=['Ananya Reddy','Karthik Rao','Fatima Sheikh','Rohan Mehta','Priya Nair','Aditya Verma','Sneha Kulkarni','Vikram Singh','Meghana Pillai','Arjun Das','Lakshmi Iyer','Imran Qureshi'];
+  var PROP=[0.88,0.95,0.70,0.82,0.92,0.62,0.86,0.97,0.78,0.73,0.90,0.66];
+  var MOD=[-0.02,-0.06,0.03,-0.1,0.02,-0.04];
+  var ROLE={student:'Student',teacher:'Teacher',admin:'Administrator'};
+  var TABS={
+    student:[['mine','Dashboard','home'],['courses','My courses','check'],['acct','Account','user']],
+    teacher:[['mark','Mark attendance','check'],['report','Class report','chart'],['acct','Account','user']],
+    admin:[['models','Storage models','db'],['ledger','Ledger','cube'],['users','Users','shield'],['acct','Account','user']]
+  };
+  var ICON={
+    home:'<path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"/>',
+    check:'<rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 12.5l3 3 5-6"/>',
+    chart:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+    cube:'<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3zM12 12l8-4.5M12 12v9M12 12L4 7.5"/>',
+    db:'<ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/>',
+    out:'<path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>',
+    user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',
+    book:'<path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2V5zM4 19a2 2 0 012-2h13"/>',
+    shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/>',
+    pct:'<path d="M19 5L5 19"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/>',
+    alert:'<path d="M12 3l10 18H2L12 3zM12 10v5M12 18v.5"/>',
+    clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    coin:'<circle cx="12" cy="12" r="9"/><path d="M14.5 9a3 3 0 00-5 0c0 3.5 5 1.5 5 5a3 3 0 01-5 0M12 6v2M12 16v2"/>'
+  };
+  function ic(n){return '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ICON[n]+'</svg>'}
+  var MODEL={
+    cs:{name:'Client-server',color:'--cs',fee:0.002,lat:60,store:'MySQL row',lt:'about 60 ms'},
+    p2p:{name:'Peer-to-peer',color:'--p2p',fee:0.66,lat:3500,store:'On-chain transaction',lt:'seconds to minutes'},
+    hy:{name:'Hybrid',color:'--hy',fee:0.01,lat:1400,store:'Fabric channel + anchor',lt:'about 1 to 2 s'}
+  };
+  var THRESH=75;
+  var SLOTS=[['09:00',0],['10:00',3],['11:30',1],['13:30',5],['14:30',2]];
+  var NOTICES=[
+    ['Examinations','Internal assessment II begins on 17 Nov. Hall tickets need 75% attendance in each course.'],
+    ['Attendance','The monthly shortage list is published on 5 Nov. Check your courses before then.'],
+    ['Labs','Blockchain Technology lab moves to Room 214 from next week.']
+  ];
+
+  /* ---------- helpers ---------- */
+  var seed=7311;
+  function rnd(){seed|=0;seed=seed+0x6D2B79F5|0;var t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}
+  function fb(s){var a=0xdeadbeef,b=0x41c6ce57,i,c;for(i=0;i<s.length;i++){c=s.charCodeAt(i);a=Math.imul(a^c,2654435761);b=Math.imul(b^c,1597334677)}
+    a=Math.imul(a^a>>>16,2246822507)^Math.imul(b^b>>>13,3266489909);b=Math.imul(b^b>>>16,2246822507)^Math.imul(a^a>>>13,3266489909);
+    var h=(b>>>0).toString(16).padStart(8,'0')+(a>>>0).toString(16).padStart(8,'0');return h+h+h+h}
+  function sha(s){
+    try{
+      if(window.crypto&&crypto.subtle){
+        return crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)).then(function(b){
+          return Array.prototype.map.call(new Uint8Array(b),function(x){return x.toString(16).padStart(2,'0')}).join('');
+        });
+      }
+    }catch(e){}
+    return Promise.resolve(fb(s));
+  }
+  function sleep(ms){return new Promise(function(r){setTimeout(r,ms)})}
+  function fmtDate(d){return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}
+  function inr(n){return '₹'+(n>=1000?Math.round(n).toLocaleString('en-IN'):n.toFixed(2))}
+  function sh(h){return h.slice(0,8)+'…'+h.slice(-4)}
+  function ini(n){return n.replace(/^Dr\.\s*/,'').split(' ').map(function(x){return x[0]}).slice(0,2).join('')}
+  function $(s){return document.querySelector(s)}
+
+  /* ---------- state ---------- */
+  var chain=[],ACC=[];
+  function load(k){try{return JSON.parse(localStorage.getItem(K+k))}catch(e){return null}}
+  function save(k,v){try{localStorage.setItem(K+k,JSON.stringify(v))}catch(e){}}
+  var sm=load('model');
+  var S={ready:false,wait:false,role:null,user:null,tab:'mine',stu:0,course:0,rcourse:0,marks:STUDENTS.map(function(){return true}),
+    busy:false,msg:null,detail:null,model:MODEL[sm]?sm:'hy',showAll:false,verify:null,err:null,forgot:false,pmsg:null};
+  function pwHash(id,pw){return sha(id+':'+pw)}
+  function seedAccounts(){
+    var l=[{id:'ADM-001',name:'Registrar Office',role:'admin'},{id:'FAC-117',name:'Dr. Meera Iyer',role:'teacher'}];
+    STUDENTS.forEach(function(n,i){l.push({id:'STU-'+(2401+i),name:n,role:'student',stu:i})});
+    return Promise.all(l.map(function(a){return pwHash(a.id,DEFAULT_PW).then(function(h){a.hash=h;return a})}));
+  }
+
+  function content(b){return [b.i,b.course,b.session,b.date,b.marks.map(function(m){return m?1:0}).join(''),b.prev].join('|')}
+  function addBlock(o){
+    var i=chain.length,prev=i?chain[i-1].hash:new Array(65).join('0');
+    var b={i:i,course:o.course,session:o.session,date:o.date,marks:o.marks.slice(),prev:prev,model:o.model,fee:o.marks.length*MODEL[o.model].fee,ms:o.ms||0,ok:true};
+    return sha(content(b)).then(function(h){b.hash=h;chain.push(b);return b});
+  }
+  function seedChain(){
+    chain=[];seed=7311;
+    var days=[],d=new Date(2026,7,3);
+    while(days.length<60){var w=d.getDay();if(w!==0&&w!==6)days.push(new Date(d));d.setDate(d.getDate()+1)}
+    var items=[],c,k;
+    for(c=0;c<COURSES.length;c++)for(k=0;k<14;k++)items.push({c:c,k:k,day:k*3+(c%3)});
+    items.sort(function(a,b){return a.day-b.day||a.c-b.c});
+    var p=Promise.resolve();
+    items.forEach(function(it){
+      var marks=STUDENTS.map(function(_,s){return rnd()<Math.min(0.99,Math.max(0.3,PROP[s]+MOD[it.c]))});
+      p=p.then(function(){return addBlock({course:it.c,session:it.k+1,date:fmtDate(days[it.day]),marks:marks,model:'cs'})});
+    });
+    return p;
+  }
+  function held(c){return chain.filter(function(b){return b.course===c}).length}
+  function presentOf(c,s){return chain.reduce(function(n,b){return n+(b.course===c&&b.marks[s]?1:0)},0)}
+  function pct(c,s){var h=held(c);return h?presentOf(c,s)/h*100:0}
+  function overall(s){var t=0,p=0;COURSES.forEach(function(_,c){t+=held(c);p+=presentOf(c,s)});return {t:t,p:p,v:t?p/t*100:0}}
+
+  /* ---------- views ---------- */
+  function loginView(){
+    var body;
+    if(S.forgot){
+      body='<div class="fgrid"><p class="fine" style="text-align:center">Passwords are reset by the Registrar office. Ask the administrator to reset yours, then sign in with the default password and change it from the Account page.</p><button type="button" class="btn ghost block" data-act="back">Back to login</button></div>';
+    }else{
+      body='<form id="lf" class="fgrid" autocomplete="on" novalidate>'+
+        '<div class="fld"><label for="uid">User ID</label><input id="uid" name="username" autocomplete="username" autocapitalize="characters" spellcheck="false" required></div>'+
+        '<div class="fld"><label for="pw">Password</label><input id="pw" name="password" type="password" autocomplete="current-password" required></div>'+
+        (S.err?'<div class="note err" role="alert">'+S.err+'</div>':'')+
+        '<button type="submit" class="btn block"'+((S.ready&&!S.wait)?'':' disabled')+'>'+((S.ready&&!S.wait)?'Login':'<span class="spin"></span>Please wait')+'</button>'+
+        '<button type="button" class="lnk" data-act="forgot">Forgot Password / Unlock Account</button></form>';
+    }
+    return '<div class="lg"><div class="lcard"><div class="lbody"><div class="lhead">'+logo('limg')+'<span class="label">Welcome</span><h1>Anvaya</h1><p>'+INST+'</p></div>'+body+
+      '<div class="lfoot"><span>Powered by Anvaya</span></div></div></div></div>';
+  }
+
+  function shell(body){
+    var u=S.user;
+    var nav=TABS[S.role].map(function(t){return '<button type="button" class="nv" data-act="tab" data-v="'+t[0]+'"'+(S.tab===t[0]?' aria-current="page"':'')+'>'+ic(t[2])+'<span>'+t[1]+'</span></button>'}).join('');
+    return '<div class="app"><header class="top"><div class="brand"><span class="chip">'+logo('')+'</span><div><strong>Anvaya</strong><small>'+INST+'</small></div></div>'+
+      '<div class="me"><div class="who"><b>'+u.name+'</b><small>'+ROLE[u.role]+' · '+u.id+'</small></div><span class="av">'+ini(u.name)+'</span><button type="button" class="out" data-act="out" aria-label="Sign out">'+ic('out')+'</button></div></header>'+
+      '<div class="shell"><aside class="side"><nav class="nav" aria-label="Sections">'+nav+'</nav></aside>'+
+      '<main class="main">'+body+'</main></div></div>';
+  }
+
+  function stuSelect(){return ''}
+  function ring(p){
+    var c=2*Math.PI*44,col=p>=THRESH?'var(--good)':'var(--bad)';
+    return '<svg class="ring" viewBox="0 0 110 110" role="img" aria-label="Overall attendance '+Math.round(p)+' percent"><circle class="rt" cx="55" cy="55" r="44"/><circle class="rv" cx="55" cy="55" r="44" stroke="'+col+'" stroke-dasharray="'+(c*p/100).toFixed(1)+' '+c.toFixed(1)+'" transform="rotate(-90 55 55)"/><text x="55" y="62" text-anchor="middle">'+Math.round(p)+'%</text></svg>';
+  }
+
+  function studentHome(){
+    var s=S.stu,o=overall(s),h=new Date().getHours(),g=h<12?'Good morning':h<17?'Good afternoon':'Good evening';
+    var low=COURSES.filter(function(_,c){return pct(c,s)<THRESH}),today=fmtDate(new Date());
+    var tt=SLOTS.map(function(sl){var c=COURSES[sl[1]],done=chain.some(function(b){return b.course===sl[1]&&b.date===today});
+      return '<li><time>'+sl[0]+'</time><div><b>'+c.name+'</b><small>'+c.code+' · '+c.room+'</small></div><span class="pill'+(done?' on':'')+'">'+(done?'Marked':'Scheduled')+'</span></li>'}).join('');
+    var nt=NOTICES.map(function(n){return '<li><small>'+n[0]+'</small><span>'+n[1]+'</span></li>'}).join('');
+    var msg=low.length?low.length+(low.length>1?' courses are':' course is')+' below '+THRESH+'%: '+low.map(function(c){return c.name}).join(', ')+'.':'Every course is at or above '+THRESH+'%. Keep it up.';
+    return '<div class="ph"><div><h1>'+g+', '+STUDENTS[s].split(' ')[0]+'</h1><p>'+STUDENTS[s]+' · B.Tech Computer Science · Semester 7</p></div>'+stuSelect()+'</div>'+
+      '<div class="card hi">'+ring(o.v)+'<div><h2>'+(low.length?'Attendance needs attention':'Attendance is on track')+'</h2><p>'+msg+'</p></div></div>'+
+      '<div class="stats"><div class="card stat"><span class="si">'+ic('check')+'</span><div><b>'+o.p+' / '+o.t+'</b><span>Sessions attended</span></div></div>'+
+      '<div class="card stat"><span class="si">'+ic('alert')+'</span><div><b>'+low.length+'</b><span>Courses in shortage</span></div></div>'+
+      '<div class="card stat"><span class="si">'+ic('cube')+'</span><div><b>'+chain.length+'</b><span>Blocks on the ledger</span></div></div></div>'+
+      '<div class="grid2"><section class="card"><div class="chead"><h3>Today\'s timetable</h3><span class="label">'+today+'</span></div><ul class="tt">'+tt+'</ul></section>'+
+      '<section class="card"><div class="chead"><h3>Notices</h3></div><ul class="nt">'+nt+'</ul></section></div>';
+  }
+
+  function studentCourses(){
+    var s=S.stu,rows='';
+    COURSES.forEach(function(c,ci){
+      var bl=chain.filter(function(b){return b.course===ci}),pr=bl.filter(function(b){return b.marks[s]}).length,pc=bl.length?pr/bl.length*100:0;
+      var cells=bl.map(function(b){
+        var on=S.detail&&S.detail.b===b.i&&S.detail.s===s;
+        return '<button type="button" class="cell'+(b.marks[s]?' p':'')+(b.ok?'':' bad')+(on?' on':'')+'" data-act="cell" data-b="'+b.i+'" aria-label="'+c.name+' session '+b.session+', '+b.date+', '+(b.marks[s]?'present':'absent')+'"></button>'}).join('');
+      var ok=pc>=THRESH;
+      rows+='<div class="crow"><div class="nm">'+c.name+'<small>'+c.code+' · '+pr+' of '+bl.length+' sessions</small></div>'+
+        '<div class="pc"><b>'+pc.toFixed(0)+'%</b><span class="badge '+(ok?'good':'badc')+'">'+(ok?'Eligible':'Shortage')+'</span></div><div class="cells">'+cells+'</div></div>';
+    });
+    var det='';
+    if(S.detail){var b=chain[S.detail.b];
+      det='<div class="detail" aria-live="polite"><b>'+COURSES[b.course].name+', session '+b.session+' · '+b.date+'</b><span>'+STUDENTS[S.stu]+' was <b>'+(b.marks[S.stu]?'present':'absent')+'</b>. Recorded as block #'+b.i+' via '+MODEL[b.model].name+'.</span>'+
+        '<span class="'+(b.ok?'good':'badc')+'">'+(b.ok?'Verified: the block matches its hash.':'Failed verification: this block was changed after it was sealed.')+'</span>'+
+        '<span class="mono">hash '+b.hash+'<br>prev '+b.prev+'</span></div>';}
+    return '<div class="ph"><div><h1>My courses</h1><p>Each square is one class session. Select a square to see its block and hash.</p></div>'+stuSelect()+'</div>'+
+      '<div class="card">'+rows+'</div>'+det+
+      '<div class="key"><span><i class="p"></i>Present</span><span><i></i>Absent</span><span><i class="b"></i>Failed verification</span><span>Eligibility needs '+THRESH+'% in each course</span></div>';
+  }
+
+  function teacherMark(){
+    var c=S.course,m=MODEL[S.model],n=S.marks.filter(Boolean).length;
+    var opts=COURSES.map(function(x,i){return '<option value="'+i+'"'+(i===c?' selected':'')+'>'+x.code+' · '+x.name+'</option>'}).join('');
+    var roster=STUDENTS.map(function(nm,i){return '<label><span class="av s">'+ini(nm)+'</span><input type="checkbox" data-chg="mk" data-i="'+i+'"'+(S.marks[i]?' checked':'')+(S.busy?' disabled':'')+' aria-label="'+nm+' present"><span class="n">'+nm+'</span><small>'+pct(c,i).toFixed(0)+'%</small></label>'}).join('');
+    var recent=chain.slice(-5).reverse().map(function(b){return '<tr><td>#'+b.i+'</td><td>'+COURSES[b.course].name+'</td><td>S'+b.session+'</td><td>'+b.date+'</td><td>'+b.marks.filter(Boolean).length+' / '+b.marks.length+'</td><td>'+MODEL[b.model].name+'</td></tr>'}).join('');
+    var msg=S.msg?'<div class="note '+S.msg.k+'" aria-live="polite">'+S.msg.t+'</div>':'';
+    return '<div class="ph"><div><h1>Mark attendance</h1><p>Session '+(held(c)+1)+' of '+COURSES[c].name+' · '+fmtDate(new Date())+'</p></div>'+
+      '<div class="sel"><label for="crs">Course</label><select id="crs" data-chg="crs"'+(S.busy?' disabled':'')+'>'+opts+'</select></div></div>'+
+      '<div class="note">Stored with <b>'+m.name+'</b> ('+m.store+'). Confirmation takes '+m.lt+'. The administrator sets this model.</div>'+
+      '<div class="card"><div class="chead"><h3>Roster</h3><span class="label">'+n+' of '+STUDENTS.length+' present</span></div><div class="roster">'+roster+'</div></div>'+
+      '<div class="actions"><button type="button" class="btn" data-act="submit"'+(S.busy?' disabled':'')+'>'+(S.busy?'<span class="spin"></span>Sealing block':'Submit '+n+' present')+'</button>'+
+      '<button type="button" class="btn ghost" data-act="allp"'+(S.busy?' disabled':'')+'>All present</button><button type="button" class="btn ghost" data-act="alla"'+(S.busy?' disabled':'')+'>All absent</button></div>'+msg+
+      '<div class="card"><div class="chead"><h3>Latest blocks</h3></div><div class="tw"><table><thead><tr><th>Block</th><th>Course</th><th>Session</th><th>Date</th><th>Present</th><th>Model</th></tr></thead><tbody>'+recent+'</tbody></table></div></div>';
+  }
+
+  function teacherReport(){
+    var c=S.rcourse,h=held(c),sum=0;
+    var opts=COURSES.map(function(x,i){return '<option value="'+i+'"'+(i===c?' selected':'')+'>'+x.code+' · '+x.name+'</option>'}).join('');
+    var low=0,rows=STUDENTS.map(function(nm,i){var p=pct(c,i);sum+=p;if(p<THRESH)low++;
+      return '<tr><td><span style="display:inline-flex;align-items:center;gap:.6rem"><span class="av s">'+ini(nm)+'</span>'+nm+'</span></td><td>'+presentOf(c,i)+' / '+h+'</td><td><div class="bar"><i style="width:'+p+'%;background:'+(p>=THRESH?'var(--good)':'var(--bad)')+'"></i></div></td><td>'+p.toFixed(0)+'%</td><td class="'+(p>=THRESH?'good':'badc')+'">'+(p>=THRESH?'Eligible':'Shortage')+'</td></tr>'}).join('');
+    return '<div class="ph"><div><h1>Class report</h1><p>'+COURSES[c].name+' · '+h+' sessions held</p></div>'+
+      '<div class="sel"><label for="rc">Course</label><select id="rc" data-chg="rc">'+opts+'</select></div></div>'+
+      '<div class="stats"><div class="card stat"><span class="si">'+ic('pct')+'</span><div><b>'+(sum/STUDENTS.length).toFixed(0)+'%</b><span>Class average</span></div></div>'+
+      '<div class="card stat"><span class="si">'+ic('alert')+'</span><div><b>'+low+'</b><span>Students below '+THRESH+'%</span></div></div>'+
+      '<div class="card stat"><span class="si">'+ic('clock')+'</span><div><b>'+h+'</b><span>Sessions held</span></div></div></div>'+
+      '<div class="card"><div class="tw"><table><thead><tr><th>Student</th><th>Present</th><th>Attendance</th><th>%</th><th>Status</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+  }
+
+  function adminModels(){
+    var cards=Object.keys(MODEL).map(function(k){var m=MODEL[k];
+      return '<button type="button" class="mc" data-act="model" data-v="'+k+'" aria-pressed="'+(S.model===k)+'"><h3><span class="dot" style="background:var('+m.color+')"></span>'+m.name+(S.model===k?' · active':'')+'</h3>'+
+        '<dl><div><dt>Stored as</dt><dd>'+m.store+'</dd></div><div><dt>Confirmation</dt><dd>'+m.lt+'</dd></div><div><dt>Fee per mark</dt><dd>'+inr(m.fee)+'</dd></div></dl></button>'}).join('');
+    var agg={cs:{n:0,f:0},p2p:{n:0,f:0},hy:{n:0,f:0}},marks=0,spend=0;
+    chain.forEach(function(b){agg[b.model].n++;agg[b.model].f+=b.fee;marks+=b.marks.length;spend+=b.fee});
+    var rows=Object.keys(agg).map(function(k){return '<tr><td><span class="dot" style="background:var('+MODEL[k].color+');margin-right:.5rem"></span>'+MODEL[k].name+'</td><td>'+agg[k].n+'</td><td>'+inr(agg[k].f)+'</td></tr>'}).join('');
+    var anch=Math.floor(agg.hy.n/5);
+    return '<div class="ph"><div><h1>Storage models</h1><p>The active model decides where new attendance is written, how long it takes and what it costs.</p></div></div>'+
+      '<div class="models">'+cards+'</div>'+
+      '<div class="stats"><div class="card stat"><span class="si">'+ic('cube')+'</span><div><b>'+chain.length+'</b><span>Blocks sealed</span></div></div>'+
+      '<div class="card stat"><span class="si">'+ic('check')+'</span><div><b>'+marks.toLocaleString('en-IN')+'</b><span>Marks recorded</span></div></div>'+
+      '<div class="card stat"><span class="si">'+ic('coin')+'</span><div><b>'+inr(spend)+'</b><span>Fees so far</span></div></div>'+
+      '<div class="card stat"><span class="si">'+ic('shield')+'</span><div><b>'+anch+'</b><span>Public anchors</span></div></div></div>'+
+      '<div class="card"><div class="chead"><h3>Fees by model</h3></div><div class="tw"><table><thead><tr><th>Model</th><th>Blocks</th><th>Fees</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>'+
+      '<p class="fine">Semester history was recorded under client-server. Latency and fees are simulated from the project cost model. Hybrid anchors to a public chain once for every five hybrid blocks.</p>';
+  }
+
+  function adminLedger(){
+    var list=chain.slice().reverse();if(!S.showAll)list=list.slice(0,10);
+    var rows=list.map(function(b){return '<tr class="'+(b.ok?'':'badrow')+'"><td>#'+b.i+'</td><td>'+COURSES[b.course].code+'</td><td>S'+b.session+'</td><td>'+b.date+'</td><td>'+b.marks.filter(Boolean).length+' / '+b.marks.length+'</td><td>'+MODEL[b.model].name+'</td><td class="h">'+sh(b.hash)+'</td><td class="h">'+(b.i?sh(b.prev):'genesis')+'</td><td class="'+(b.ok?'good':'badc')+'">'+(b.ok?'Valid':'Altered')+'</td></tr>'}).join('');
+    var v=S.verify?'<div class="note '+S.verify.k+'" aria-live="polite">'+S.verify.t+'</div>':'';
+    return '<div class="ph"><div><h1>Ledger</h1><p>'+chain.length+' blocks. Each block stores the hash of the block before it.</p></div></div>'+
+      '<div class="actions"><button type="button" class="btn" data-act="verify"'+(S.busy?' disabled':'')+'>'+(S.busy?'<span class="spin"></span>Checking':'Verify chain')+'</button><button type="button" class="btn ghost" data-act="clear"'+(S.busy?' disabled':'')+'>Clear all records</button></div>'+v+
+      '<div class="card"><div class="tw"><table><thead><tr><th>Block</th><th>Course</th><th>Session</th><th>Date</th><th>Present</th><th>Model</th><th>Hash</th><th>Previous</th><th>Status</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>'+
+      '<div class="actions"><button type="button" class="btn ghost sm" data-act="all">'+(S.showAll?'Show latest 10':'Show all '+chain.length)+'</button></div>'+
+      '<p class="fine">Verify chain recomputes every hash and checks each link to the block before it. A block changed after it was sealed is flagged.</p>';
+  }
+
+  function accountView(){
+    var u=S.user,m=S.pmsg?'<div class="note '+S.pmsg.k+'" aria-live="polite">'+S.pmsg.t+'</div>':'';
+    return '<div class="ph"><div><h1>Account</h1><p>'+u.name+' · '+ROLE[u.role]+' · '+u.id+'</p></div></div>'+
+      '<div class="card cpad"><form id="pwf" class="fgrid" novalidate><h3 style="font:600 1rem var(--f-body)">Change password</h3>'+
+      '<div class="fld"><label for="p0">Current password</label><input id="p0" type="password" autocomplete="current-password"></div>'+
+      '<div class="fld"><label for="p1">New password (6 characters or more)</label><input id="p1" type="password" autocomplete="new-password"></div>'+
+      '<div class="fld"><label for="p2">Confirm new password</label><input id="p2" type="password" autocomplete="new-password"></div>'+
+      m+'<div class="actions"><button type="submit" class="btn">Update password</button></div></form></div>';
+  }
+  function adminUsers(){
+    var rows=ACC.map(function(a){return '<tr><td class="mono">'+a.id+'</td><td>'+a.name+'</td><td>'+ROLE[a.role]+'</td><td><button type="button" class="btn ghost sm" data-act="rp" data-v="'+a.id+'">Reset password</button></td></tr>'}).join('');
+    var m=S.pmsg?'<div class="note '+S.pmsg.k+'" aria-live="polite">'+S.pmsg.t+'</div>':'';
+    return '<div class="ph"><div><h1>Users</h1><p>'+ACC.length+' accounts. Reset sets a password back to the default, <span class="mono">'+DEFAULT_PW+'</span>.</p></div></div>'+m+
+      '<div class="card"><div class="tw"><table><thead><tr><th>User ID</th><th>Name</th><th>Role</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+  }
+
+  function render(){
+    var h;
+    if(!S.role){h=loginView()}
+    else{
+      var v={mine:studentHome,courses:studentCourses,mark:teacherMark,report:teacherReport,models:adminModels,ledger:adminLedger,users:adminUsers,acct:accountView}[S.tab];
+      h=shell(v());
+    }
+    $('#app').innerHTML=h;
+  }
+
+  /* ---------- actions ---------- */
+  function submit(){
+    if(S.busy)return;var n=S.marks.filter(Boolean).length,m=MODEL[S.model],t0=Date.now();
+    S.busy=true;S.msg=null;render();
+    sleep(m.lat+Math.round(Math.random()*m.lat*0.3)).then(function(){
+      return addBlock({course:S.course,session:held(S.course)+1,date:fmtDate(new Date()),marks:S.marks,model:S.model,ms:Date.now()-t0});
+    }).then(function(b){
+      S.busy=false;
+      S.msg={k:'ok',t:'Block #'+b.i+' sealed for '+COURSES[S.course].name+' via '+m.name+' in '+((b.ms)/1000).toFixed(1)+' s. '+n+' of '+STUDENTS.length+' present. Fee '+inr(b.fee)+'.'};
+      S.marks=STUDENTS.map(function(){return true});save('chain',chain);render();
+    });
+  }
+  function verify(){
+    S.busy=true;S.verify=null;render();
+    var bad=[],p=Promise.resolve();
+    chain.forEach(function(b,i){p=p.then(function(){return sha(content(b))}).then(function(h){
+      var okHash=h===b.hash,okLink=i===0||b.prev===chain[i-1].hash;b.ok=okHash&&okLink;if(!b.ok)bad.push(b.i)})});
+    p.then(function(){return sleep(500)}).then(function(){
+      S.busy=false;
+      S.verify=bad.length?{k:'err',t:'Check failed. '+bad.length+' block'+(bad.length>1?'s':'')+' no longer match'+(bad.length>1?'':'es')+' their hash: #'+bad.join(', #')+'.'}
+        :{k:'ok',t:'All '+chain.length+' blocks are valid. Every hash matches and every link is intact.'};
+      save('chain',chain);render();
+    });
+  }
+  function clearAll(){
+    if(!window.confirm('Delete every attendance record? This cannot be undone.'))return;
+    chain=[];save('chain',chain);S.verify=null;S.detail=null;S.msg=null;render();
+  }
+  function login(id,pw){
+    id=(id||'').trim().toUpperCase();
+    var a=ACC.filter(function(x){return x.id===id})[0];
+    S.wait=true;S.err=null;render();
+    pwHash(id,pw||'').then(function(h){
+      S.wait=false;
+      if(a&&a.hash===h){S.user=a;S.role=a.role;S.stu=a.stu||0;S.tab=TABS[a.role][0][0];S.detail=null;S.msg=null;S.verify=null;S.pmsg=null;
+        try{sessionStorage.setItem(K+'sid',a.id)}catch(e){}window.scrollTo(0,0)}
+      else S.err='Invalid User ID or password.';
+      render();
+    });
+  }
+  function changePw(){
+    var p0=$('#p0').value,p1=$('#p1').value,p2=$('#p2').value,u=S.user;
+    if(p1.length<6){S.pmsg={k:'err',t:'The new password must be at least 6 characters.'};return render()}
+    if(p1!==p2){S.pmsg={k:'err',t:'The new passwords do not match.'};return render()}
+    pwHash(u.id,p0).then(function(h){
+      if(h!==u.hash){S.pmsg={k:'err',t:'The current password is wrong.'};render();return}
+      return pwHash(u.id,p1).then(function(n){u.hash=n;save('acc',ACC);S.pmsg={k:'ok',t:'Password updated.'};render()});
+    });
+  }
+  function resetPw(id){
+    var a=ACC.filter(function(x){return x.id===id})[0];if(!a)return;
+    pwHash(a.id,DEFAULT_PW).then(function(h){a.hash=h;save('acc',ACC);S.pmsg={k:'ok',t:'Password for '+a.id+' ('+a.name+') was reset to the default.'};render()});
+  }
+
+  /* ---------- events ---------- */
+  var app=$('#app');
+  app.addEventListener('submit',function(e){
+    e.preventDefault();var f=e.target.id;
+    if(f==='lf'&&S.ready&&!S.wait)login($('#uid').value,$('#pw').value);
+    else if(f==='pwf')changePw();
+  });
+  app.addEventListener('click',function(e){
+    var el=e.target.closest('[data-act]');if(!el)return;var a=el.getAttribute('data-act'),v=el.getAttribute('data-v');
+    if(a==='forgot'){S.forgot=true;S.err=null;render()}
+    else if(a==='back'){S.forgot=false;render()}
+    else if(a==='out'){S.role=null;S.user=null;S.err=null;try{sessionStorage.removeItem(K+'sid')}catch(x){}render()}
+    else if(a==='tab'){S.tab=v;S.pmsg=null;render()}
+    else if(a==='cell'){var bi=+el.getAttribute('data-b');S.detail=(S.detail&&S.detail.b===bi&&S.detail.s===S.stu)?null:{b:bi,s:S.stu};render()}
+    else if(a==='submit')submit();
+    else if(a==='allp'){S.marks=S.marks.map(function(){return true});render()}
+    else if(a==='alla'){S.marks=S.marks.map(function(){return false});render()}
+    else if(a==='model'){S.model=v;save('model',v);render()}
+    else if(a==='verify')verify();
+    else if(a==='clear')clearAll();
+    else if(a==='rp')resetPw(v);
+    else if(a==='all'){S.showAll=!S.showAll;render()}
+  });
+  app.addEventListener('change',function(e){
+    var el=e.target,c=el.getAttribute('data-chg');if(!c)return;
+    if(c==='crs'){S.course=+el.value;S.msg=null;render()}
+    else if(c==='rc'){S.rcourse=+el.value;render()}
+    else if(c==='mk'){var i=el.getAttribute('data-i');S.marks[+i]=el.checked;render();var n=document.querySelector('.roster input[data-i="'+i+'"]');if(n)n.focus()}
+  });
+
+  render();
+  var accs=load('acc'),saved=load('chain');
+  (Array.isArray(accs)&&accs.length?Promise.resolve(accs):seedAccounts().then(function(l){save('acc',l);return l}))
+  .then(function(l){ACC=l;
+    if(Array.isArray(saved)){chain=saved;return}
+    return seedChain().then(function(){save('chain',chain)});
+  }).then(function(){
+    var sid=null;try{sid=sessionStorage.getItem(K+'sid')}catch(e){}
+    var a=ACC.filter(function(x){return x.id===sid})[0];
+    if(a){S.user=a;S.role=a.role;S.stu=a.stu||0;S.tab=TABS[a.role][0][0]}
+    S.ready=true;render();
+  });
+})();
+</script>
+
+</body></html>

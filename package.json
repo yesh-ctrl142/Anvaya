@@ -1,0 +1,17 @@
+{
+  "name": "anvaya-attendance",
+  "version": "1.0.0",
+  "description": "Anvaya - Attendance Management Platform with Ledger Verification",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "attendance",
+    "erp",
+    "blockchain",
+    "ledger"
+  ],
+  "author": "",
+  "license": "MIT"
+}
